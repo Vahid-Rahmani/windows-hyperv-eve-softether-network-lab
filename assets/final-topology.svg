@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="760" viewBox="0 0 1400 760" role="img" aria-labelledby="title desc">
+<title id="title">Final Windows Hyper-V, SoftEther, EVE-NG network lab topology</title><desc id="desc">Windows Hyper-V services on the left connect via SoftEther to EVE-NG and R1 on the right, which provides VLAN routing and Internet NAT.</desc>
+<style>text{font-family:Segoe UI,Arial,sans-serif;fill:#10243e}.t{font-weight:700;font-size:24px}.h{font-weight:700;font-size:17px}.s{font-size:14px}.box{stroke:#315b85;stroke-width:2;rx:14}.line{stroke:#315b85;stroke-width:3;fill:none}.vpn{stroke:#7445a7;stroke-width:5;stroke-dasharray:10 8;fill:none}.wan{stroke:#d07823;stroke-width:4;fill:none}</style>
+<rect width="1400" height="760" fill="#f6f9fc"/><text x="48" y="48" class="t">Completed lab: Windows Server ↔ SoftEther ↔ EVE-NG ↔ Internet</text>
+<rect class="box" x="55" y="100" width="400" height="520" fill="#eaf3ff"/><text x="80" y="135" class="h">Windows 11 / Hyper-V — DC-LAB internal switch</text>
+<rect class="box" x="95" y="180" width="145" height="90" fill="#fff"/><text x="110" y="215" class="h">DC / DNS</text><text x="110" y="240" class="s">10.10.10.10</text>
+<rect class="box" x="270" y="180" width="145" height="90" fill="#fff"/><text x="285" y="215" class="h">SRV-APP01</text><text x="285" y="240" class="s">DHCP .10.20</text>
+<rect class="box" x="95" y="350" width="320" height="115" fill="#fff"/><text x="115" y="385" class="h">SoftEther VPN Server / Hub BRIDGE</text><text x="115" y="412" class="s">DDNS: vpn-lab.example.net:443</text><text x="115" y="437" class="s">Host management: 10.10.10.254 (no gateway)</text>
+<rect class="box" x="570" y="100" width="380" height="520" fill="#f1edff"/><text x="595" y="135" class="h">Ubuntu / KVM / virt-manager / EVE-NG</text>
+<rect class="box" x="620" y="195" width="275" height="95" fill="#fff"/><text x="640" y="230" class="h">SoftEther VPN Bridge</text><text x="640" y="255" class="s">Hub BRIDGE → br-eve</text>
+<rect class="box" x="620" y="365" width="275" height="115" fill="#fff"/><text x="640" y="400" class="h">R1 router-on-a-stick</text><text x="640" y="426" class="s">VLAN 10: .10.1 | VLAN 20: .20.1</text><text x="640" y="451" class="s">LAN 30: .30.1</text>
+<rect class="box" x="1040" y="145" width="275" height="125" fill="#fff8ed"/><text x="1060" y="180" class="h">SW1 trunk</text><text x="1060" y="207" class="s">VLAN 10 servers</text><text x="1060" y="232" class="s">VLAN 20 clients</text>
+<rect class="box" x="1040" y="375" width="275" height="125" fill="#fff8ed"/><text x="1060" y="410" class="h">SW2 access VLAN 30</text><text x="1060" y="437" class="s">Windows 10 / PC3</text><text x="1060" y="462" class="s">DHCP via R1 relay</text>
+<path class="line" d="M240 225H270"/><path class="line" d="M255 270V350"/><path class="vpn" d="M415 407H620"/><text x="470" y="390" class="s">Layer-2 VPN / Cascade</text><path class="line" d="M757 290V365"/><path class="line" d="M895 420H1040"/><path class="line" d="M895 405L1040 207"/>
+<path class="wan" d="M757 480V670H1230"/><text x="820" y="655" class="s">R1 e0/3 → libvirt virbr0 172.20.122.1 → Wi-Fi / Internet (NAT/PAT)</text><circle cx="1260" cy="670" r="48" fill="#fff1df" stroke="#d07823" stroke-width="3"/><text x="1229" y="677" class="h">Internet</text>
+<text x="75" y="585" class="s">DHCP scopes: 10/20/30 • DNS domain: kurs.intern • R1 is the sole lab default gateway</text>
+</svg>
