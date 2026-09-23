@@ -1,0 +1,80 @@
+! R1 reference configuration reconstructed from recorded lab state.
+! Confirm IOS feature support and actual interface mapping before applying.
+!
+interface Ethernet0/0
+ description SW1-TRUNK-PARENT
+ no ip address
+ no ip nat inside
+ no shutdown
+!
+interface Ethernet0/0.10
+ description VLAN10-SERVERS-OVER-SOFTETHER
+ encapsulation dot1Q 10
+ ip address 10.10.10.1 255.255.255.0
+ ip nat inside
+!
+interface Ethernet0/0.20
+ description VLAN20-EVE-CLIENTS
+ encapsulation dot1Q 20
+ ip address 10.10.20.1 255.255.255.0
+ ip helper-address 10.10.10.20
+ ip nat inside
+!
+interface Ethernet0/1
+ description VLAN30-WIN10-PC3-LAN
+ ip address 10.10.30.1 255.255.255.0
+ ip helper-address 10.10.10.20
+ ip nat inside
+ no shutdown
+!
+interface Ethernet0/3
+ description LIBVIRT-WAN
+ ip address dhcp
+ ip nat outside
+ no shutdown
+!
+access-list 1 permit 10.10.10.0 0.0.0.255
+access-list 1 permit 10.10.20.0 0.0.0.255
+access-list 1 permit 10.10.30.0 0.0.0.255
+ip nat inside source list 1 interface Ethernet0/3 overload
+!
+! Recorded default gateway in the working run:
+ip route 0.0.0.0 0.0.0.0 172.20.122.1
+!
+! Verification:
+! show ip interface brief
+! show running-config | include helper-address
+! show ip route
+! show ip nat statistics
+! show ip nat translations
+
+! SW1 reference: R1 e0/0 uplink must be a trunk, not an access port.
+vlan 10
+ name SERVERS
+vlan 20
+ name CLIENTS
+interface Ethernet0/0
+ description TO-R1-E0/0
+ switchport mode trunk
+ switchport trunk allowed vlan 10,20
+ no shutdown
+! Assign server-facing interfaces to VLAN 10 and client-facing interfaces to VLAN 20.
+
+! SW2 reference: a single VLAN-30 access segment.
+vlan 30
+ name CLIENT-LAN30
+interface Ethernet0/0
+ description TO-R1-E0/1
+ switchport mode access
+ switchport access vlan 30
+ no shutdown
+interface Ethernet0/1
+ description TO-WIN10-OR-PC3
+ switchport mode access
+ switchport access vlan 30
+ no shutdown
+! Optional management only; never duplicate the R1 gateway address.
+interface vlan 30
+ ip address 10.10.30.2 255.255.255.0
+ no shutdown
+ip default-gateway 10.10.30.1

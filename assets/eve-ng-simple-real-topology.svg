@@ -1,0 +1,128 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1080" viewBox="0 0 1600 1080" role="img" aria-labelledby="title desc">
+  <title id="title">Real EVE-NG, Hyper-V and SoftEther lab topology</title>
+  <desc id="desc">Simple topology showing Windows Hyper-V services, SoftEther bridge, Ubuntu EVE-NG, Cisco R1, VLANs, DHCP relay and NAT using the actual private lab addressing.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#071827"/><stop offset="1" stop-color="#0c2940"/></linearGradient>
+    <linearGradient id="win" x1="0" x2="1"><stop stop-color="#0b6eb5"/><stop offset="1" stop-color="#1296d4"/></linearGradient>
+    <linearGradient id="eve" x1="0" x2="1"><stop stop-color="#ec6b22"/><stop offset="1" stop-color="#f29b38"/></linearGradient>
+    <linearGradient id="router" x1="0" x2="1"><stop stop-color="#0e9b9d"/><stop offset="1" stop-color="#25c4b8"/></linearGradient>
+    <marker id="arrow" markerWidth="11" markerHeight="11" refX="8" refY="4" orient="auto"><path d="M0,0 L9,4 L0,8 Z" fill="#63d5ff"/></marker>
+    <marker id="orangeArrow" markerWidth="11" markerHeight="11" refX="8" refY="4" orient="auto"><path d="M0,0 L9,4 L0,8 Z" fill="#ffb14d"/></marker>
+    <filter id="shadow"><feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#000" flood-opacity=".32"/></filter>
+    <style>
+      text { font-family: Arial, Helvetica, sans-serif; fill: #eef8ff; }
+      .title { font-size: 37px; font-weight: 700; letter-spacing: .6px; }
+      .subtitle { font-size: 18px; fill: #a9cee1; }
+      .box-title { font-size: 22px; font-weight: 700; }
+      .body { font-size: 17px; }
+      .small { font-size: 15px; fill: #c2dcea; }
+      .tag { font-size: 14px; font-weight: 700; fill: #062235; }
+      .wire { stroke: #63d5ff; stroke-width: 4; fill: none; marker-end: url(#arrow); }
+      .wire2 { stroke: #ffb14d; stroke-width: 4; fill: none; marker-end: url(#orangeArrow); }
+      .dash { stroke: #82e7d7; stroke-width: 3; fill: none; stroke-dasharray: 9 8; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1080" fill="url(#bg)"/>
+  <path d="M0 115H1600M0 220H1600M0 325H1600M0 430H1600M0 535H1600M0 640H1600M0 745H1600M0 850H1600M0 955H1600" stroke="#17364b" stroke-width="1" opacity=".65"/>
+  <path d="M100 0V1080M300 0V1080M500 0V1080M700 0V1080M900 0V1080M1100 0V1080M1300 0V1080M1500 0V1080" stroke="#17364b" stroke-width="1" opacity=".65"/>
+
+  <text x="800" y="62" text-anchor="middle" class="title">MY REAL EVE-NG / HYPER-V / SOFTETHER LAB</text>
+  <text x="800" y="94" text-anchor="middle" class="subtitle">Windows Server services · Layer-2 bridge · Cisco VLAN routing · DHCP relay · NAT/PAT</text>
+
+  <!-- Windows / Hyper-V -->
+  <g filter="url(#shadow)">
+    <rect x="55" y="154" width="400" height="322" rx="22" fill="#082b42" stroke="url(#win)" stroke-width="4"/>
+    <rect x="55" y="154" width="400" height="52" rx="22" fill="url(#win)"/>
+    <text x="80" y="188" class="box-title">WINDOWS 11 / HYPER-V</text>
+    <text x="80" y="242" class="body">DC-LAB internal vSwitch</text>
+    <rect x="80" y="264" width="350" height="61" rx="10" fill="#0c3b58"/>
+    <text x="97" y="290" class="body">DC / DNS</text>
+    <text x="97" y="313" class="small">192.168.10.10  ·  kurs.intern</text>
+    <rect x="80" y="340" width="350" height="61" rx="10" fill="#0c3b58"/>
+    <text x="97" y="366" class="body">SRV-APP01 / DHCP</text>
+    <text x="97" y="389" class="small">192.168.10.20  ·  DHCP server</text>
+    <rect x="80" y="416" width="212" height="31" rx="15" fill="#6fd9f7"/>
+    <text x="186" y="437" text-anchor="middle" class="tag">VLAN 10: 192.168.10.0/24</text>
+  </g>
+
+  <!-- SoftEther -->
+  <g filter="url(#shadow)">
+    <rect x="565" y="167" width="470" height="184" rx="92" fill="#103d59" stroke="#63d5ff" stroke-width="4"/>
+    <text x="800" y="215" text-anchor="middle" class="box-title">SOFTETHER LAYER-2 BRIDGE</text>
+    <text x="800" y="248" text-anchor="middle" class="body">Hub: BRIDGE  ·  Local Bridge: br-eve</text>
+    <text x="800" y="278" text-anchor="middle" class="small">Cascade: WINDOWS-DC-LAB  ·  TCP 443</text>
+    <text x="800" y="311" text-anchor="middle" class="small">Dynamic Wi-Fi observed: 10.184.85.166 → 10.177.236.166</text>
+    <text x="800" y="333" text-anchor="middle" class="small">Final correction: SoftEther DDNS / FQDN, not a hard-coded Wi-Fi IP</text>
+  </g>
+
+  <!-- Ubuntu/EVE -->
+  <g filter="url(#shadow)">
+    <rect x="1145" y="154" width="400" height="322" rx="22" fill="#3b2219" stroke="url(#eve)" stroke-width="4"/>
+    <rect x="1145" y="154" width="400" height="52" rx="22" fill="url(#eve)"/>
+    <text x="1170" y="188" class="box-title">UBUNTU / KVM / EVE-NG</text>
+    <text x="1170" y="243" class="body">SoftEther VPN Bridge</text>
+    <text x="1170" y="272" class="body">Linux bridge: br-eve</text>
+    <text x="1170" y="306" class="body">EVE cloud → Cisco topology</text>
+    <rect x="1170" y="341" width="319" height="78" rx="10" fill="#51301f"/>
+    <text x="1188" y="370" class="body">Evidence used:</text>
+    <text x="1188" y="397" class="small">BridgeList / CascadeList / tcpdump</text>
+  </g>
+
+  <path d="M455 314 H557" class="wire"/>
+  <path d="M1038 314 H1137" class="wire"/>
+
+  <!-- R1 -->
+  <g filter="url(#shadow)">
+    <rect x="560" y="515" width="480" height="174" rx="24" fill="#0b3b40" stroke="url(#router)" stroke-width="4"/>
+    <rect x="560" y="515" width="480" height="51" rx="24" fill="url(#router)"/>
+    <text x="800" y="548" text-anchor="middle" class="box-title">CISCO R1 — L3 GATEWAY / DHCP RELAY / NAT</text>
+    <text x="585" y="596" class="body">e0/0.10  VLAN 10  192.168.10.1/24</text>
+    <text x="585" y="623" class="body">e0/0.20  VLAN 20  192.168.20.1/24  ·  helper → 192.168.10.20</text>
+    <text x="585" y="650" class="body">e0/1     VLAN 30  192.168.30.1/24  ·  helper → 192.168.10.20</text>
+    <text x="585" y="677" class="body">e0/3     WAN      192.168.122.166/24  →  GW 192.168.122.1</text>
+  </g>
+
+  <path d="M800 351 V505" class="wire"/>
+  <path d="M560 600 C485 600 455 540 390 476" class="dash"/>
+  <text x="346" y="535" class="small">DHCP relay target</text>
+  <text x="346" y="557" class="small">192.168.10.20</text>
+
+  <!-- VLAN 10 / SW1 -->
+  <g filter="url(#shadow)">
+    <rect x="55" y="768" width="385" height="220" rx="22" fill="#082b42" stroke="#42c7f4" stroke-width="4"/>
+    <text x="80" y="809" class="box-title">SW1 — TRUNK TO R1 e0/0</text>
+    <text x="80" y="841" class="body">VLAN 10: Server network</text>
+    <text x="80" y="869" class="small">192.168.10.0/24  ·  Gateway 192.168.10.1</text>
+    <text x="80" y="904" class="body">VLAN 20: EVE clients</text>
+    <text x="80" y="932" class="small">192.168.20.0/24  ·  Gateway 192.168.20.1</text>
+    <text x="80" y="963" class="small">DHCP relay proven by tcpdump:</text>
+    <text x="80" y="982" class="small">192.168.20.1 → 192.168.10.20</text>
+  </g>
+
+  <!-- VLAN 30 / SW2 -->
+  <g filter="url(#shadow)">
+    <rect x="1160" y="768" width="385" height="220" rx="22" fill="#3b2219" stroke="#f4a14a" stroke-width="4"/>
+    <text x="1185" y="809" class="box-title">SW2 — ACCESS VLAN 30</text>
+    <text x="1185" y="842" class="body">Windows 10 / PC3 clients</text>
+    <text x="1185" y="871" class="small">192.168.30.0/24  ·  Gateway 192.168.30.1</text>
+    <text x="1185" y="905" class="body">DHCP scope: VLAN30-CLIENTS</text>
+    <text x="1185" y="932" class="small">Lease range: 192.168.30.100–192.168.30.200</text>
+    <text x="1185" y="963" class="small">DNS option: 192.168.10.10</text>
+    <text x="1185" y="982" class="small">Fixed error: wrong Option 003 gateway</text>
+  </g>
+
+  <!-- NAT -->
+  <g filter="url(#shadow)">
+    <rect x="593" y="783" width="414" height="132" rx="20" fill="#493816" stroke="#ffbe55" stroke-width="4"/>
+    <text x="800" y="825" text-anchor="middle" class="box-title">INTERNET PATH</text>
+    <text x="800" y="856" text-anchor="middle" class="body">R1 NAT/PAT → 192.168.122.1 → Internet</text>
+    <text x="800" y="885" text-anchor="middle" class="small">NAT inside: routed VLAN/LAN interfaces · outside: e0/3</text>
+  </g>
+
+  <path d="M650 689 C530 700 395 724 250 760" class="wire"/>
+  <path d="M950 689 C1080 700 1240 724 1350 760" class="wire"/>
+  <path d="M800 690 V772" class="wire2"/>
+
+  <text x="800" y="1037" text-anchor="middle" class="subtitle">Troubleshooting path: direct Hyper-V/EVE attempt → SoftEther bridge → DHCP scope/Option 003 correction → NAT/PAT → validated Internet access</text>
+</svg>
