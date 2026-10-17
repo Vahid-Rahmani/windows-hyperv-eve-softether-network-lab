@@ -1,5 +1,7 @@
 # Build and validation runbook
 
+> **Earlier build notes.** This page records the smaller lab and its teaching examples. The current two-site, six-VLAN design is described in [Current architecture](architecture.md), with [recorded evidence](evidence.md). Earlier statements about future extensions belong to that stage.
+
 ## 1. Windows / Hyper-V foundation
 
 1. Create or retain the Hyper-V **Internal** switch `DC-LAB`.

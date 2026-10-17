@@ -1,58 +1,68 @@
-# Architecture and traffic paths
+# Current two-site architecture
 
-## Final topology
+This describes the expanded lab recorded on 17 October 2026. The [earlier architecture](archive/architecture-first-version.md) is retained for comparison. Its three-network design is not the current topology.
 
-The Windows 11 host supplies an **internal** Hyper-V vSwitch named `DC-LAB`. An internal switch does not give its attached VMs Internet access. That is deliberate: R1 is the only lab router and provides the route and NAT path.
+## Hosts and transport
 
-```text
-Windows 11 / Hyper-V                         Ubuntu / EVE-NG
---------------------                         ----------------
-DC-LAB (internal switch) ← SoftEther → VPN Bridge / br-eve ← EVE cloud
-  ├─ DC/DNS 10.10.10.10                              └─ R1 e0/0.10 (VLAN 10)
-  ├─ DHCP   10.10.10.20                                 ├─ e0/0.20 (VLAN 20)
-  └─ host management .254                              ├─ e0/1 (LAN 30)
-                                                       └─ e0/3 → virbr0 → Internet
-```
+The Windows host runs Hyper-V and internal switch DC-LAB. Linux runs KVM/QEMU, virt-manager, EVE-NG and the SoftEther bridge. The cluster nodes are KVM guests; R1, SW1 and SW2 are EVE-NG nodes.
 
-`br-eve` is a Layer-2 attachment for the VPN bridge, not a routed host interface. A missing host IP on `br-eve` is not by itself a bridge failure.
+SoftEther joins the Hyper-V lab segment to Linux bridge br-eve through hub BRIDGE and Cascade WINDOWS-DC-LAB. Service state, local bridge state and Cascade state are separate checks. Operating and Online (Established) were recorded, followed by an R1-to-DC ping test.
 
-## Routing and switching roles
+The tunnel is bidirectional. It does not replace the VLAN gateways. The EVE NIC and Cloud/pnet attachment still have to match br-eve. A bridge forwarding Ethernet frames does not need its own host IP.
 
-* **R1** owns each client subnet's default gateway. It routes between VLANs and to the WAN.
-* **SW1** is Layer 2: the R1 uplink is an 802.1Q trunk for VLANs 10 and 20. Server ports belong to VLAN 10; EVE client ports belong to VLAN 20.
-* **SW2** is Layer 2: both R1 and client ports are access VLAN 30. No trunk is needed because only VLAN 30 traverses that link.
-* **DHCP** creates scopes and returns address options. It does not create the routed subnet.
-* **DNS** translates names. It is not the Internet gateway.
+![Current overview](../assets/current-lab-overview.svg)
 
-## DHCP relay path
+## Routing and VLANs
 
-For a VLAN 20 client, the DHCP Discover broadcast cannot cross a router unaided. R1 receives it on `e0/0.20`, sets `giaddr`/Gateway-IP to `10.10.20.1`, and unicasts it to `10.10.10.20` due to `ip helper-address`.
+| Link | Role |
+| --- | --- |
+| R1 Ethernet0/0 ↔ SW1 Ethernet0/0 | Trunk for 10 / 20 / 30 |
+| R1 Ethernet0/2 ↔ SW2 Ethernet0/0 | Trunk for 40 / 50 / 60 |
+| R1 Ethernet0/3 ↔ WAN / Cloud0 | Outside connection |
 
-The observed packet evidence was:
+R1 uses routed subinterfaces with gateway 192.168.&lt;VLAN&gt;.1/24. SW1 and SW2 provide Layer 2 switching.
 
-```text
-10.10.20.1.67 > 10.10.10.20.67
-Gateway-IP 10.10.20.1
-DHCP-Message: Discover
-```
+The working drawing assigns SW2 Ethernet0/3 to TW-CL1, Ethernet1/1 to TW-CL2 and Ethernet1/0 to TW-STOR1, all in VLAN 40. Ethernet1/3 is the Site 2 DC attachment, still marked planned in the drawing. Ethernet0/1 and Ethernet0/2 serve VPCS in VLANs 50 and 60.
 
-That proves the request crossed EVE, `br-eve`, SoftEther, and reached the DHCP server-side segment. DHCP chooses the scope from the relay address, so it needs an active `10.10.20.0/24` scope with `10.10.20.1` as Router option.
+These are diagrammed attachments, not a switch configuration export. Multiple external connections to the same Linux bridge require a loop check.
 
-## Internet path
+## Windows identities in the dashboard snapshot
 
-```text
-Client → R1 inside interface → R1 e0/3 (PAT/NAT outside)
-       → 172.20.122.1 libvirt virbr0 → Ubuntu Wi-Fi → Internet
-```
+| DNS identity in kurs.intern | IPv4 | Recorded role |
+| --- | --- | --- |
+| SERVER-DC | 192.168.10.10 | DC and primary DNS address |
+| SRV-DC01 | 192.168.10.11 | Additional DC |
+| SRV-APP01 | 192.168.10.20 | Server; DHCP address in the drawing |
+| SRV-FILE | 192.168.10.40 | Server; file service in the design |
+| TW-STOR1 | 192.168.40.10 | iSCSI target |
+| TW-CL1 | 192.168.40.11 | Cluster node |
+| TW-CL2 | 192.168.40.12 | Cluster node |
+| SRV-DC02 | 192.168.40.13 | Site 2 DC |
+| CLI-01 | 192.168.10.102 | Client, no WinRM response |
+| CLI-03 | 192.168.10.100 | Client with telemetry |
 
-The NAT rule references the WAN **interface**, not a hard-coded address. Therefore a DHCP-renewed e0/3 address does not require changing the NAT rule.
+VM names, diagram labels and Windows DNS names can differ. The drawing includes representative VPCS and older labels; it is not the dashboard's host inventory.
 
-## SoftEther transport
+## AD, DNS and DHCP
 
-The early Cascade endpoint was a changing Windows Wi-Fi address such as `10.99.1.50`. It stopped working when the Wi-Fi network/address changed, for example to `10.99.2.50`. The working endpoint was changed to a SoftEther DDNS/FQDN:
+Both sites use kurs.intern. The documented layout associates the 10/20/30 subnets with SITE1-HYPERV and 40/50/60 with SITE2-LINUX. A second subnet does not require a child domain. A current replication report remains a separate check.
 
-```text
-vpn-lab.example.net:443
-```
+The Site 2 DC is 192.168.40.13. The plan assigns DHCP to 192.168.10.20. Scope output showed active .100–.200 ranges for VLANs 10, 20 and 30; this is not evidence for every other scope and option.
 
-This FQDN is the connection target; it is distinct from the lab's private IP plan and must remain resolvable from Ubuntu. The conversation also considered a dedicated wired `/30` transport, but it was a recommendation rather than a confirmed deployed final state.
+DHCP relay belongs on the relevant R1 Layer 3 gateway interfaces. The server needs a return route to the client VLAN. Check the lease's address, mask, own-subnet gateway and internal DNS, not just that an address was obtained.
+
+## Cluster and storage
+
+TW-CL1 and TW-CL2 use target TW-CLUSTER-STORAGE on TW-STOR1. The documented allocation is a 10 GB backing data disk, ClusterData01 at 5 GB and ClusterWitness01 at 1 GB.
+
+TW-FS01 / 192.168.40.20 is the virtual file service. TW-CLUSTER / 192.168.40.25 is the management identity. The intended share is **\\TW-FS01\Shares**. These identities are not additional VMs.
+
+This is a general-use file server design with an active resource owner. Both nodes are in Site 2, not a stretched cluster. Shared disks are prepared once, then controlled by the cluster. A CSV is a storage capability, not an NTFS format; its use is not implied by the existence of shared LUNs.
+
+## Boundaries
+
+R1 provides the outside routing/NAT path. An Internet ping on R1 does not establish correct routing, NAT and DNS on every guest. The earlier IOS examples are not a complete captured configuration for six VLANs.
+
+VPN certificate/authentication settings and inter-VLAN access controls need their own inspection. VLAN separation alone is not firewall policy. The single Linux host and storage server remain failure points.
+
+See [evidence](evidence.md) and the [validation checklist](test-plan.md).

@@ -1,5 +1,7 @@
 # Complete project case study
 
+> **Earlier build notes.** This page records the smaller lab and its teaching examples. The current two-site, six-VLAN design is described in [Current architecture](architecture.md), with [recorded evidence](evidence.md). Earlier statements about future extensions belong to that stage.
+
 This is the portfolio version of a lab that took several weeks to assemble and debug. It is deliberately honest: the finished topology is documented alongside the failed direct connection, the wrong DHCP data, the service-repair work, and the small configuration assumptions that cost time.
 
 All IP addresses, hostnames, user names, and public endpoints below are sanitized teaching examples. They describe the design, not a publishable copy of a private environment.

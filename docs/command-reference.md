@@ -1,5 +1,7 @@
 # Command reference and expected evidence
 
+> **Earlier build notes.** This page records the smaller lab and its teaching examples. The current two-site, six-VLAN design is described in [Current architecture](architecture.md), with [recorded evidence](evidence.md). Earlier statements about future extensions belong to that stage.
+
 The commands below are a reference, not a blind copy-and-paste deployment. Interface names, scope ranges, credentials, and service paths must be checked in the live lab. Examples intentionally use anonymized data.
 
 ## Windows: DHCP, DNS, and client validation

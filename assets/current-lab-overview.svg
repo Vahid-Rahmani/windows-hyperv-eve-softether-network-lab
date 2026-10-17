@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="890" viewBox="0 0 1200 890" role="img" aria-labelledby="title desc">
+  <title id="title">Vahid Rahmani Windows Server lab with two sites</title>
+  <desc id="desc">A Windows Hyper-V host and a Linux KVM host are joined through SoftEther. EVE-NG runs R1 and two switches. Site 1 has VLANs 10, 20 and 30; Site 2 has VLANs 40, 50 and 60. Site 2 contains an iSCSI target, two cluster nodes and an additional domain controller. The virtual file service and cluster management have separate addresses.</desc>
+  <defs>
+    <style>
+      text { font-family: DejaVu Sans, Arial, sans-serif; fill: #20312d; }
+      .title { font-size: 31px; font-weight: 700; fill: #173f35; }
+      .section { font-size: 14px; font-weight: 700; fill: #447c67; letter-spacing: 1px; }
+      .head { font-size: 21px; font-weight: 700; fill: #173f35; }
+      .body { font-size: 17px; }
+      .small { font-size: 14px; fill: #5c6b65; }
+      .light { fill: #eaf0ea; }
+      .white { fill: white; stroke: #d7ded6; }
+      .wire { stroke: #447c67; stroke-width: 2.5; fill: none; }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#447c67"/></marker>
+  </defs>
+  <rect width="1200" height="890" fill="#f8f6f0"/>
+  <rect width="1200" height="9" fill="#173f35"/>
+  <text x="48" y="47" class="section">BUILT AND DOCUMENTED BY VAHID RAHMANI</text>
+  <text x="48" y="92" class="title">One domain across two lab hosts</text>
+  <text x="48" y="121" class="small">kurs.intern · Logical overview of the expanded lab · 17 October 2026</text>
+
+  <rect x="48" y="154" width="524" height="208" rx="17" class="light"/>
+  <rect x="628" y="154" width="524" height="208" rx="17" class="light"/>
+  <text x="70" y="185" class="section">SITE 1 / WINDOWS</text>
+  <text x="70" y="218" class="head">Hyper-V and internal switch DC-LAB</text>
+  <text x="70" y="251" class="body">SERVER-DC .10.10 · SRV-DC01 .10.11</text>
+  <text x="70" y="279" class="body">SRV-APP01 .10.20 · SRV-FILE .10.40</text>
+  <text x="70" y="307" class="body">Domain clients and Windows services</text>
+  <text x="70" y="337" class="small">Addresses abbreviated within 192.168.0.0/16</text>
+
+  <text x="650" y="185" class="section">SITE 2 / LINUX</text>
+  <text x="650" y="218" class="head">KVM, virt-manager and EVE-NG</text>
+  <text x="650" y="251" class="body">TW-STOR1 .40.10 · SRV-DC02 .40.13</text>
+  <text x="650" y="279" class="body">TW-CL1 .40.11 · TW-CL2 .40.12</text>
+  <text x="650" y="307" class="body">Cisco R1, SW1 and SW2 run in EVE-NG</text>
+  <text x="650" y="337" class="small">iSCSI storage and both cluster nodes at Site 2</text>
+
+  <path d="M 300 362 V 407 H 900 V 362" class="wire" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+  <rect x="344" y="386" width="512" height="43" rx="21" fill="#173f35"/>
+  <text x="600" y="413" text-anchor="middle" font-size="17" font-weight="700" style="fill:white">SoftEther Layer 2 transport · hub BRIDGE · br-eve</text>
+
+  <text x="48" y="478" class="section">ROUTING AND SWITCHING</text>
+  <rect x="445" y="494" width="310" height="84" rx="13" class="white"/>
+  <text x="600" y="526" text-anchor="middle" class="head">R1 owns the gateways</text>
+  <text x="600" y="553" text-anchor="middle" class="small">.1 in each subnet · DHCP relay · WAN path</text>
+  <path d="M 445 535 H 338" class="wire" marker-end="url(#arrow)"/>
+  <path d="M 755 535 H 862" class="wire" marker-end="url(#arrow)"/>
+  <rect x="48" y="494" width="290" height="116" rx="13" class="white"/>
+  <text x="70" y="526" class="head">SW1</text>
+  <text x="70" y="556" class="body">Trunk: VLANs 10 / 20 / 30</text>
+  <text x="70" y="585" class="small">192.168.10 / 20 / 30.0/24</text>
+  <rect x="862" y="494" width="290" height="116" rx="13" class="white"/>
+  <text x="884" y="526" class="head">SW2</text>
+  <text x="884" y="556" class="body">Trunk: VLANs 40 / 50 / 60</text>
+  <text x="884" y="585" class="small">192.168.40 / 50 / 60.0/24</text>
+
+  <text x="48" y="659" class="section">TWO VIRTUAL IDENTITIES / NOT TWO EXTRA VMS</text>
+  <rect x="48" y="679" width="524" height="91" rx="13" class="white"/>
+  <rect x="628" y="679" width="524" height="91" rx="13" class="white"/>
+  <text x="70" y="714" class="head">TW-FS01</text>
+  <text x="70" y="746" class="body">192.168.40.20 · File service identity</text>
+  <text x="650" y="714" class="head">TW-CLUSTER</text>
+  <text x="650" y="746" class="body">192.168.40.25 · Cluster management</text>
+  <line x1="48" y1="804" x2="1152" y2="804" stroke="#d7ded6"/>
+  <text x="48" y="832" class="small">The original EVE-NG drawing contains the full port detail. This diagram explains the roles.</text>
+  <text x="48" y="857" class="small">Node availability, SMB reachability and successful failover are separate checks.</text>
+</svg>

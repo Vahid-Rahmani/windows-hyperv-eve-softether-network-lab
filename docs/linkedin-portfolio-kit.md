@@ -1,5 +1,7 @@
 # LinkedIn portfolio kit
 
+> **Earlier build notes.** This page records the smaller lab and its teaching examples. The current two-site, six-VLAN design is described in [Current architecture](architecture.md), with [recorded evidence](evidence.md). Earlier statements about future extensions belong to that stage.
+
 This page contains copy that can be used for a LinkedIn profile and a portfolio post. It is written to accurately describe the lab without claiming a certification credential, employer, or production deployment that has not been independently verified.
 
 ## Suggested headline
