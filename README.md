@@ -1,119 +1,119 @@
-# Windows Server, Hyper-V, EVE-NG & SoftEther Network Lab
+# My Windows Server lab across Hyper-V and Linux
 
-> A documented, working lab journey that joins a Windows Server domain environment in Hyper-V to an EVE-NG topology on Ubuntu through a SoftEther Layer-2 bridge. The finished lab provides routed VLANs, DHCP relay, DNS/Active Directory reachability, SMB file services, and Internet access through Cisco NAT/PAT.
+I started with Windows Server VMs on a Hyper-V internal switch. Getting them to communicate with EVE-NG on a separate Linux host became a project of its own. Once that connection worked, I extended the lab to two sites, six VLANs, another domain controller, shared iSCSI storage and a two-node file server cluster.
 
-![Final topology](assets/final-topology.svg)
+This repository is my record of that work: the network I built, the mistakes I investigated, and the results I can show. The earlier, smaller version is still here so the development is visible.
 
-![Build journey](assets/lab-journey.svg)
+**Built and documented by Vahid Rahmani.** This is my learning environment, not a customer deployment.
 
-![Simple EVE-NG topology using the real private lab addressing](assets/eve-ng-simple-real-topology.svg)
+[My German project report — PDF, 15 pages](docs/reports/Abschlussprojekt_Vahid_Rahmani_DE.pdf) · [Full EVE-NG topology](assets/two-site-topology.png) · [Deutscher Projektüberblick](docs/projektbericht.de.md)
 
-**The key picture:** Hyper‑V does not connect to EVE‑NG by magic. The Windows `DC-LAB` internal switch is carried as Layer‑2 by SoftEther; Ubuntu exposes that bridge as `br-eve`; EVE‑NG connects the bridge to Cisco R1; R1 performs VLAN routing, DHCP relay, and NAT. The diagram above is the complete relationship between the three platforms.
+![Current two-site lab overview](assets/current-lab-overview.svg)
 
-## The story in one minute
+## What changed since the first version
 
-This project took several weeks of hands-on troubleshooting. It began with Windows Server services and an internal Hyper‑V network, then moved to Ubuntu/KVM/EVE‑NG. The first direct EVE↔Hyper‑V attempt was not stable. SoftEther was introduced as the missing Layer‑2 transport, and the final design was completed with Cisco routing and Internet NAT.
+The first version focused on Hyper-V → SoftEther → Linux bridge → EVE-NG, followed by routing, DHCP relay and NAT exercises. It used a smaller three-network design.
 
-```text
-Windows 11 / Hyper‑V                 Ubuntu / EVE‑NG
-DC-LAB internal switch               KVM + EVE cloud
-        │                                  │
-        └─ SoftEther Server ⇄ Bridge ─ br-eve
-                                           │
-                                     Cisco R1 + SW1/SW2
-```
+The current version adds:
 
-The project records both the failures and the evidence that solved them. Examples include a duplicate gateway/ARP conflict, wrong SW2 VLAN membership, an incorrect DHCP option 003, a missing DHCP response identified with `tcpdump`, a broken systemd unit, a changing Wi‑Fi Cascade address, and confusion between DNS and the default gateway.
+- Two logical AD sites in the same **kurs.intern** domain, with an additional DC at Site 2.
+- VLANs 10/20/30 behind SW1 and VLANs 40/50/60 behind SW2.
+- **TW-CL1** and **TW-CL2**, backed by the iSCSI target on **TW-STOR1**.
+- Separate identities for cluster management and the clustered file service.
+- A local monitoring dashboard with recorded host measurements and service checks.
+- A German report connecting the Windows Server course tasks A1–A13 to the larger lab.
 
-## What was achieved
+The report, drawing and screenshots record the lab on **17 October 2026**. Older notes often use example addresses and describe an earlier stage. They are useful history, not the current network plan.
 
-| Capability | Final result |
+## Start with my actual lab
+
+| Material | What it shows |
 | --- | --- |
-| Windows infrastructure | Example DC/DNS at `10.10.10.10`; example DHCP/file server `10.10.10.20` |
-| Virtualisation | Windows 11 Hyper-V `DC-LAB` internal switch; Ubuntu runs EVE-NG/KVM/virt-manager |
-| Cross-host Layer 2 | EVE `br-eve` bridged through SoftEther to the Windows `DC-LAB` network |
-| Routing | Cisco R1 router-on-a-stick for VLANs 10/20 and routed LAN 30 |
-| DHCP | Remote scopes served through R1 `ip helper-address` |
-| Domain services | Clients use example DC DNS (`10.10.10.10`) and can join `kurs.intern` after network validation |
-| Internet | R1 NAT/PAT via example libvirt `virbr0` (`172.20.122.1`) |
-| Resilience to Wi-Fi address changes | SoftEther Cascade uses a stable FQDN, not a changing Wi-Fi IP |
+| [German project report](docs/reports/Abschlussprojekt_Vahid_Rahmani_DE.pdf) | My decisions, course tasks, diagrams, troubleshooting and documented tests |
+| [Original working topology](assets/two-site-topology.png) | Both sites, links, VLANs, shared storage and cluster identities |
+| [Current architecture](docs/architecture.md) | How transport, switching, routing, AD and storage fit together |
+| [Evidence and open checks](docs/evidence.md) | What the supplied screenshots establish and what still needs a test record |
+| [Validation checklist](docs/test-plan.md) | The checks I use at each layer |
+| [Earlier build story](docs/complete-project-case-study.md) | The smaller setup from which this version developed |
 
-## Network plan
+Click the full drawing to inspect the original:
 
-| Segment | Addressing | Gateway | Purpose |
-| --- | --- | --- | --- |
-| VLAN 10 | `10.10.10.0/24` | `10.10.10.1` | Servers, carried over the SoftEther bridge |
-| VLAN 20 | `10.10.20.0/24` | `10.10.20.1` | EVE clients, tagged on the R1/SW1 trunk |
-| VLAN 30 | `10.10.30.0/24` | `10.10.30.1` | Windows 10 / PC3 through SW2 access ports |
-| R1 WAN | `172.20.122.0/24` | `172.20.122.1` | Example libvirt NAT network |
+[![My EVE-NG working topology](assets/two-site-topology.png)](assets/two-site-topology.png)
 
-Important fixed roles:
+Some labels predate the dashboard capture. The Site 2 DC is labelled **SRV-DC01** in the drawing, while its recorded Windows name is **SRV-DC02.kurs.intern**, at **192.168.40.13**. The Site Link and DC port still carry planning labels. I have kept the original drawing and explained the difference instead of treating it as a configuration export.
 
-```text
-R1 e0/0.10      10.10.10.1     VLAN 10 gateway
-R1 e0/0.20      10.10.20.1     VLAN 20 gateway / DHCP relay
-R1 e0/1         10.10.30.1     LAN 30 gateway / DHCP relay
-DC/DNS          10.10.10.10
-SRV-APP01 DHCP  10.10.10.20
-Windows host    10.10.10.254 management only; no default gateway on DC-LAB
-Domain          kurs.intern
-```
+## How I connected the two hosts
 
-## Read this first
+On Windows, the VMs use the internal switch **DC-LAB**. SoftEther carries the lab segment to **br-eve** on Linux. EVE-NG attaches the bridge to the simulated network. R1 handles the routed gateways; SoftEther provides Layer 2 transport.
 
-This is a reconstruction from several lab conversations and verified command outputs. Every address, public hostname, Wi-Fi address, person name, account name, and password has been anonymised or replaced with a teaching example. It intentionally does **not** include passwords, VPN secrets, exported VMs, or a claimed configuration dump that was never captured. Values marked **[confirm]** must be checked in the live lab before reuse.
+Both switch uplinks are trunks in this version:
 
-Start with [Architecture](docs/architecture.md), then follow the complete [Project case study](docs/complete-project-case-study.md), [Full lab journey](docs/full-lab-journey.md), [Journey reflection](docs/journey-reflection.md), and [Build and validation](docs/build-and-validation.md). The recorded failure-to-fix path is in [Troubleshooting timeline](docs/troubleshooting-timeline.md); the copyable commands are in [Command reference](docs/command-reference.md).
+| R1 connection | Destination | VLANs or purpose |
+| --- | --- | --- |
+| Ethernet0/0 | SW1 Ethernet0/0 | 10 / 20 / 30 |
+| Ethernet0/2 | SW2 Ethernet0/0 | 40 / 50 / 60 |
+| Ethernet0/3 | WAN / Cloud0 | Outside connection |
 
-## What was included, and what remains an extension
+| Site | VLANs | Private subnets |
+| --- | --- | --- |
+| Site 1 — Hyper-V | 10 / 20 / 30 | 192.168.10.0/24, 192.168.20.0/24, 192.168.30.0/24 |
+| Site 2 — Linux/KVM | 40 / 50 / 60 | 192.168.40.0/24, 192.168.50.0/24, 192.168.60.0/24 |
 
-| Area | Documentation status |
-| --- | --- |
-| Hyper-V, Windows Server services, Ubuntu/KVM, EVE-NG, SoftEther, Cisco VLAN routing, DHCP relay, and NAT | Core completed lab path and validation evidence |
-| AD/SMB permissions and Docker/nginx learning | Captured as service-side exercises in the same journey |
-| Windows Print Server or Red Hat/CUPS printer | Optional, documented extension; not presented as a completed final rollout |
-| Original private screenshots, passwords, VM disks, and VPN settings | Intentionally excluded for privacy and safety |
+R1 uses **.1** in each subnet as its gateway. These are the actual private allocations shown in my report and drawing. The older runbooks retain teaching examples. No passwords, VPN secrets, credential exports, keys or VM disks are included.
 
-The detailed service and optional printer path is in [Application services and optional extensions](docs/application-services-and-extensions.md). This boundary keeps the README strong without claiming work that was only planned or practised.
+## Adding shared storage and the cluster
 
-## Why the final topology works
+| System or identity | IPv4 | Purpose |
+| --- | --- | --- |
+| TW-STOR1 | 192.168.40.10 | iSCSI target |
+| TW-CL1 | 192.168.40.11 | Cluster node 1 |
+| TW-CL2 | 192.168.40.12 | Cluster node 2 |
+| SRV-DC02 | 192.168.40.13 | Site 2 DC |
+| TW-FS01 | 192.168.40.20 | Virtual file server |
+| TW-CLUSTER | 192.168.40.25 | Cluster management |
 
-1. **Transport:** SoftEther connects the two hosts and keeps the Cascade on a stable FQDN.
-2. **Layer 2:** `br-eve`, hub `BRIDGE`, SW1 trunk, and SW2 access VLAN 30 carry the frames.
-3. **Layer 3:** R1 owns `10.10.10.1`, `10.10.20.1`, and `10.10.30.1`; those are the only client gateways.
-4. **Services:** DHCP lives on the server VLAN; R1 relays remote broadcasts; DC DNS remains the DNS authority.
-5. **Internet:** R1 marks inside/outside interfaces and PATs the three lab networks through the example libvirt WAN.
+The storage work uses a 10 GB backing data disk, a 5 GB data LUN and a 1 GB witness LUN. TW-STOR1 is not a third cluster node. TW-FS01 and TW-CLUSTER are not extra VMs.
 
-Never infer success from one green status: confirm the service, Cascade, bridge, VLAN, relay packet, lease options, route, DNS lookup, and NAT translation in that order.
+I had to understand these differences before the configuration made sense. Two disks having the same owner is not automatically a fault. A witness is not another copy of the user files. Two cluster guests on one physical Linux host also do not protect against losing that host or the single storage server.
+
+## What my monitoring run shows
+
+![Monitoring overview from my local lab](assets/screenshots/monitoring-overview.png)
+
+The recorded run shows **10 known hosts and authenticated telemetry for 9**. CLI-01 has no WinRM response. The dashboard keeps that state visible rather than presenting missing data as zero or declaring the machine switched off.
+
+The [host list](assets/screenshots/monitoring-hosts.png) contains devices from both sites. The [cluster services view](assets/screenshots/monitoring-cluster-services.png) shows TW-FS01's SMB endpoint as reachable and TW-CLUSTER's role state as unverified.
+
+The application code is maintained in my separate [Monitoring Dashboard repository](https://github.com/Vahid-Rahmani/Automated-Hybrid-Network-Monitoring-Dashboard). These images show the local run used for this report.
+
+An open SMB port is not a successful file-access test. Two nodes showing Up is not a failover result. The [evidence page](docs/evidence.md) keeps those checks separate.
+
+## The parts that took troubleshooting
+
+**The duplicate gateway.** The Hyper-V host also had 192.168.10.1. A ping could receive a Windows reply instead of R1's reply. Comparing MAC addresses helped identify it. The host management address was moved towards .254, leaving .1 for the router.
+
+**A link that looked up but carried no expected traffic.** I checked ARP, the MAC table and packet counters, then captured traffic on br-eve. Seeing Hyper-V requests arrive narrowed the search. Rebuilding the VPN was not the right first response to every failed ping.
+
+**DHCP beyond the local subnet.** An active scope was only part of the problem. Relay, the scope's router option and the server's return path all had to fit the client VLAN.
+
+**Shared disks that did not appear.** After changing the iSCSI setup, I checked the target connection and rescanned the disks before the 5 GB and 1 GB LUNs became visible.
+
+The earlier [troubleshooting timeline](docs/troubleshooting-timeline.md) and [reflection](docs/journey-reflection.md) preserve the first build, including assumptions that later changed.
+
+## What still needs its own evidence
+
+The course tasks are recorded as completed in my project workflow. This repository does not yet contain a screenshot for every task. A current AD replication report, an automatic failover followed by access to the unchanged share, and a restore result still need separate evidence here.
+
+The single Linux host and storage server remain failure points. VLANs alone do not enforce access restrictions. I do not present this lab as an Azure deployment, an audited security design or a production handover.
 
 ## Repository map
 
-```text
-assets/                 final SVG topology
-configs/cisco/          reference IOS configurations
-configs/linux/          command and service-repair reference
-configs/powershell/     Windows Server / DHCP reference commands
-docs/                   architecture, build, troubleshooting, tests, lessons
-  complete-project-case-study.md
-  application-services-and-extensions.md
-  command-reference.md
-  linkedin-portfolio-kit.md
-```
+- **assets/** — current overview, original EVE drawing and earlier diagrams.
+- **assets/screenshots/** — the three monitoring captures.
+- **docs/reports/** — my German PDF report.
+- **docs/projektbericht.de.md** — my short project account in German.
+- **docs/architecture.md**, **evidence.md**, **test-plan.md** — current design and validation.
+- **docs/archive/** — the earlier architecture and test plan.
+- **configs/** — earlier example commands, not live six-VLAN configuration exports.
 
-## Final validation sequence
-
-1. On Linux: ensure `softether-vpnbridge` is active; in `vpncmd`, confirm Cascade is `Online (Established)` and `BridgeList` says `br-eve Operating`.
-2. On R1: ping `10.10.10.10`, `10.10.10.20`, `172.20.122.1`, and an Internet IP.
-3. Renew a VLAN 20 or VLAN 30 client lease. Verify its router option is in the same subnet.
-4. From a client: gateway → DC → `8.8.8.8` → `nslookup google.com`.
-5. On R1: inspect `show ip nat translations` while a client uses the Internet.
-
-Full commands and expected evidence are in [Test plan](docs/test-plan.md).
-
-## Security note
-
-Replace illustrative DNS forwarders and any example account names with your policy-approved values. Never commit SoftEther passwords, Windows credentials, private keys, or VM disks.
-
-## LinkedIn and CV-ready summary
-
-The repository includes a simple EVE-NG topology visual and a ready-to-review [LinkedIn portfolio kit](docs/linkedin-portfolio-kit.md). The topology visual intentionally uses the real private lab allocations requested by the owner, while the longer runbooks retain safe examples. It positions the project as a hands-on CCNA-level learning outcome while stating the next goals carefully: CCNP, then CCIE. It does not claim an official credential unless the owner adds independently verifiable certification details.
+I have kept the earlier work for comparison. The [current architecture](docs/architecture.md) is the starting point for this version.

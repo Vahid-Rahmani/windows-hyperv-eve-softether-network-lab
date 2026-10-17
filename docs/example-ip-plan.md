@@ -1,5 +1,7 @@
 # Example addressing and names
 
+> **Earlier build notes.** This page records the smaller lab and its teaching examples. The current two-site, six-VLAN design is described in [Current architecture](architecture.md), with [recorded evidence](evidence.md). Earlier statements about future extensions belong to that stage.
+
 These are safe, readable placeholders for documentation and portfolio publication. They are **not** the live environment.
 
 | Role | Example value | Why it exists |

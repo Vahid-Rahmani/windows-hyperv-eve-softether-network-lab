@@ -1,5 +1,7 @@
 # Troubleshooting timeline: symptom → evidence → correction
 
+> **Earlier build notes.** This page records the smaller lab and its teaching examples. The current two-site, six-VLAN design is described in [Current architecture](architecture.md), with [recorded evidence](evidence.md). Earlier statements about future extensions belong to that stage.
+
 | Stage | Symptom | Evidence / diagnosis | Resolution |
 | --- | --- | --- | --- |
 | 0 | Direct EVE ↔ Hyper-V attempt was not repeatable | The two virtualisation boundaries and an internal Hyper-V switch did not provide a dependable Layer-2 path | Introduced SoftEther as a dedicated bridge transport, then kept routing in EVE/R1 |

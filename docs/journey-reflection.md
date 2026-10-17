@@ -1,5 +1,7 @@
 # Journey reflection — what this project really represents
 
+> **Earlier build notes.** This page records the smaller lab and its teaching examples. The current two-site, six-VLAN design is described in [Current architecture](architecture.md), with [recorded evidence](evidence.md). Earlier statements about future extensions belong to that stage.
+
 The author reports that reaching the working result took **several weeks**. This repository therefore documents more than a final topology: it records the reasoning, failed assumptions, command-line practice, evidence collection, and corrections that turned separate experiments into one working lab.
 
 ## Where the journey began

@@ -1,5 +1,7 @@
 # Application services and optional extensions
 
+> **Earlier build notes.** This page records the smaller lab and its teaching examples. The current two-site, six-VLAN design is described in [Current architecture](architecture.md), with [recorded evidence](evidence.md). Earlier statements about future extensions belong to that stage.
+
 This document records the service-side exercises from the wider lab journey. It separates confirmed core infrastructure from optional experiments so a reader can reproduce the work without assuming every idea was a completed production feature.
 
 All addresses are safe examples. See [Example IP plan](example-ip-plan.md).

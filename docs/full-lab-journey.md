@@ -1,5 +1,7 @@
 # Full lab journey — from first server to working multi-site network
 
+> **Earlier build notes.** This page records the smaller lab and its teaching examples. The current two-site, six-VLAN design is described in [Current architecture](architecture.md), with [recorded evidence](evidence.md). Earlier statements about future extensions belong to that stage.
+
 This document deliberately uses **example addresses**. It preserves the engineering path and its failures without publishing the real environment. Replace only the values in `docs/example-ip-plan.md` when reproducing the lab.
 
 ## One picture, three layers
